@@ -14,8 +14,15 @@
   },
   "organization": "Centers for Medicare & Medicaid Services",
   "repositoryURL": "https://github.com/DSACMS/codejson-index-generator",
+  "projectURL": "",
+  "repositoryHost": "github.com/DSACMS",
+  "repositoryVisibility": "",
   "vcs": "git",
-  "laborHours": 2764,
+  "laborHours": 2822,
+  "reuseFrequency": {
+    "forks": 0,
+    "clones": 0
+  },
   "platforms": [
     "mac"
   ],
@@ -28,10 +35,11 @@
     "Python"
   ],
   "maintenance": "internal",
+  "contractNumber": "",
   "date": {
     "created": "2025-01-07T21:26:42Z",
-    "lastModified": "2025-02-11T21:19:29Z",
-    "metaDataLastUpdated": "2025-02-11T21:20:49.144Z"
+    "lastModified": "2025-05-21T16:01:19Z",
+    "metaDataLastUpdated": "2025-06-10T17:28:18.288Z"
   },
   "tags": [
     "codejson",
@@ -43,13 +51,18 @@
     "email": "opensource@cms.hhs.gov",
     "name": "CMS Open Source Program Office"
   },
+  "feedbackMechanisms": [
+    "https://github.com/DSACMS/codejson-index-generator/issues"
+  ],
   "localisation": false,
   "repositoryType": "Tools",
   "userInput": true,
   "fismaLevel": "Low",
   "group": "CMS/OA/DSAC",
+  "projects": [],
+  "systems": [],
+  "upstream": "",
   "subsetInHealthcare": "Operational",
   "userType": "Government",
-  "repositoryHost": "github.com/DSACMS",
   "maturityModelTier": 3
 }
