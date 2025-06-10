@@ -16,11 +16,11 @@
   "repositoryURL": "https://github.com/DSACMS/codejson-index-generator",
   "projectURL": "",
   "repositoryHost": "github.com/DSACMS",
-  "repositoryVisibility": "",
+  "repositoryVisibility": "public",
   "vcs": "git",
   "laborHours": 2822,
   "reuseFrequency": {
-    "forks": 0,
+    "forks": 2,
     "clones": 0
   },
   "platforms": [
@@ -45,7 +45,8 @@
     "codejson",
     "index",
     "generator",
-    "tools"
+    "tools",
+    "featured
   ],
   "contact": {
     "email": "opensource@cms.hhs.gov",
@@ -61,8 +62,12 @@
   "group": "CMS/OA/DSAC",
   "projects": [],
   "systems": [],
-  "upstream": "",
-  "subsetInHealthcare": "Operational",
-  "userType": "Government",
+  "upstream": "https://github.com/DSACMS/codejson-index-generator/network/dependencies",
+  "subsetInHealthcare": [
+    "Operational"
+  ],
+  "userType": [
+    "Government"
+  ],
   "maturityModelTier": 3
 }
