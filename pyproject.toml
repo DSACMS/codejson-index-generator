@@ -9,7 +9,7 @@ repository = "https://github.com/DSACMS/codejson-index-generator"
 
 [tool.poetry.dependencies]
 python = "^3.13"
-pygithub = ">=1.59,<2.0"
+requests = "^2.32.4"
 
 
 [build-system]

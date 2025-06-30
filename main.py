@@ -40,7 +40,7 @@ def main():
     try:
         indexGen = IndexGenerator(
             agency = args.agency,
-            verison = args.version, 
+            version = args.version, 
             token = github_key
         )
 

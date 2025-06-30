@@ -1,27 +1,77 @@
 import json
+from json.decoder import JSONDecodeError
 import base64
 import argparse
 import os
+import requests
 
+from time import sleep, mktime, gmtime, time, localtime
 from typing import Dict, Optional
-from github import Github, Repository, GithubException, Organization
+
+RETRIES = 5
+
+
+def hit_endpoint(url,token,method='GET'):
+    headers = {"Authorization": f"bearer {token}"}
+
+    attempts = 0
+    while attempts < RETRIES:
+
+        response = requests.request(method, url, headers=headers,timeout=10)
+
+        try: 
+            if response.status_code == 200:
+                response_json = json.loads(response.text)
+                break
+            elif response.status_code in (403,429):
+                #rate limit was triggered.
+                wait_until = int(response.headers.get("x-ratelimit-reset"))
+                wait_in_seconds = int(
+                    mktime(gmtime(wait_until)) -
+                    mktime(gmtime(time()))
+                )
+                wait_until_time = localtime(wait_until)
+
+                print(f"Ran into rate limit sleeping for {self.name}!")
+                print(
+                    f"sleeping until {wait_until_time.tm_hour}:{wait_until_time.tm_min} ({wait_in_seconds} seconds)"
+                )
+                sleep(wait_in_seconds)
+
+                response_json = {}
+                attempts += 1
+
+                if attempts >= REQUEST_RETRIES:
+                    raise ConnectionError(
+                        f"Rate limit was reached and couldn't be rectified after {attempts} tries"
+                    )
+            else:
+                raise ConnectionError("Rate limit error!")
+        except JSONDecodeError:
+            response_json = {}
+            attempts += 1
+    
+    return response_json
+            
+        
+
+
 
 
 class IndexGenerator:
-    def __init__(self, agency: str, verison: str, token: Optional[str] = None,):
-        self.github = Github(token) if token else Github()
+    def __init__(self, agency: str, version: str, token: Optional[str] = None,):
 
-        # user can change agency and version depending on paramters
+        # user can change agency and version depending on parameters
         self.index = {
             "agency": agency,
-            "version": verison,
+            "version": version,
             "measurementType": {
                 "method": "projects"
             },
             "releases": []
         }
 
-    def get_code_json(self, repo: Repository) -> Optional[Dict]:
+    def get_code_json(self, repo: str) -> Optional[Dict]:
         try:
             content = repo.get_contents("code.json", ref = repo.default_branch)
         except GithubException as e:
@@ -35,7 +85,7 @@ class IndexGenerator:
             print(f"JSON Error: {str(e)}")
             return None
     
-    def save_code_json(self, repo: Repository, output_path: str) -> Optional[str]:
+    def save_code_json(self, repo: str, output_path: str) -> Optional[str]:
         
         res = self.get_code_json(repo)
 
