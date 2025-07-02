@@ -4,6 +4,7 @@ import base64
 import argparse
 import os
 import requests
+import re
 
 from time import sleep, mktime, gmtime, time, localtime
 from typing import Dict, Optional
@@ -54,7 +55,32 @@ def hit_endpoint(url,token,method='GET'):
     return response_json
             
         
+def get_repo_owner_and_name(repo_http_url):
+    """ Gets the owner and repo from a url.
 
+        Args:
+            url: Github url
+
+        Returns:
+            Tuple of owner and repo. Or a tuple of None and None if the url is invalid.
+    """
+
+    # Regular expression to parse a GitHub URL into two groups
+    # The first group contains the owner of the github repo extracted from the url
+    # The second group contains the name of the github repo extracted from the url
+    # 'But what is a regular expression?' ----> https://docs.python.org/3/howto/regex.html
+    regex = r"https?:\/\/github\.com\/([A-Za-z0-9 \- _]+)\/([A-Za-z0-9 \- _ \.]+)(.git)?\/?$"
+    result = re.search(regex, repo_http_url)
+
+    if not result:
+        return None, None
+
+    capturing_groups = result.groups()
+
+    owner = capturing_groups[0]
+    repo = capturing_groups[1]
+
+    return owner, repo
 
 
 
@@ -71,18 +97,28 @@ class IndexGenerator:
             "releases": []
         }
 
-    def get_code_json(self, repo: str) -> Optional[Dict]:
+        self.token = token
+
+    def get_code_json_github(self,repo : str) -> Optional[Dict]:
         try:
-            content = repo.get_contents("code.json", ref = repo.default_branch)
-        except GithubException as e:
+            owner,name = get_repo_owner_and_name(repo)
+            code_json_endpoint = f"https://api.github.com/repos/{owner}/{name}/contents/code.json"
+            content_dict = hit_endpoint(code_json_endpoint,self.token)#repo.get_contents("code.json", ref = repo.default_branch)
+        except Exception as e:
             print(f"GitHub Error: {e.data.get('message', 'No message available')}")
             return None
 
         try:
-            decoded_content = base64.b64decode(content.content)
+            decoded_content = base64.b64decode(content_dict['content'])
             return json.loads(decoded_content)
         except (json.JSONDecodeError, ValueError) as e:
             print(f"JSON Error: {str(e)}")
+            return None
+
+    def get_code_json(self, repo: str) -> Optional[Dict]:
+        if 'github' in repo:
+            return self.get_code_json_github(repo)
+        else:
             return None
     
     def save_code_json(self, repo: str, output_path: str) -> Optional[str]:
@@ -107,16 +143,19 @@ class IndexGenerator:
     
         index['releases'].append(baseline)
 
-    def get_org_repos(self, org_name: str) -> list[Organization]:
+    def get_org_repos(self, org_name: str) -> list[Dict]:
         try:
-            org = self.github.get_organization(org_name)
+            org_endpoint = f"https://api.github.com/orgs/{org_name}/repos"
             print(f"\nProcessing organization: {org_name}")
 
-            total_repos = org.public_repos
+            repo_list = hit_endpoint(org_endpoint,self.token)
+
+
+            total_repos = len(repo_list)
             print(f"Found {total_repos} public repositories")
 
-            return total_repos
-        except GithubException as e:
+            return repo_list
+        except Exception as e:
             raise e
 
     def save_organization_files(self, org_name: str, codeJSONPath) -> None:
