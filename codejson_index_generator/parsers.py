@@ -5,6 +5,7 @@ import argparse
 import os
 import requests
 import re
+import subprocess
 
 from time import sleep, mktime, gmtime, time, localtime
 from typing import Dict, Optional
@@ -114,12 +115,15 @@ class IndexGenerator:
         except (json.JSONDecodeError, ValueError) as e:
             print(f"JSON Error: {str(e)}")
             return None
+    
+    def get_code_json_other(self,repo: str) -> Optional[Dict]:
+        return None
 
     def get_code_json(self, repo: str) -> Optional[Dict]:
         if 'github' in repo:
             return self.get_code_json_github(repo)
         else:
-            return None
+            return self.get_code_json_other(repo)
     
     def save_code_json(self, repo: str, output_path: str) -> Optional[str]:
         
