@@ -48,6 +48,7 @@ def hit_endpoint(url,token,method='GET'):
                         f"Rate limit was reached and couldn't be rectified after {attempts} tries"
                     )
             else:
+                print(response.status_code)
                 raise ConnectionError("Rate limit error!")
         except JSONDecodeError:
             response_json = {}
@@ -115,7 +116,7 @@ class IndexGenerator:
             code_json_endpoint = f"https://api.github.com/repos/{owner}/{name}/contents/code.json"
             content_dict = hit_endpoint(code_json_endpoint,self.token)#repo.get_contents("code.json", ref = repo.default_branch)
         except Exception as e:
-            print(f"GitHub Error: {e.data.get('message', 'No message available')}")
+            print(f"GitHub Error: {e}")
             return None
 
         try:
@@ -202,7 +203,7 @@ class IndexGenerator:
         except Exception as e:
             raise e
 
-    def _enumerate_repo_orgs(self,org_name,repo_name, url, total_repos, codeJSONPath=None):
+    def _enumerate_repo_orgs(self,id,org_name,repo_name, url, total_repos, codeJSONPath=None,add_to_index=True):
         print(f"\nChecking {repo_name} [{id}/{total_repos}]")
         
         if not codeJSONPath:
@@ -218,17 +219,16 @@ class IndexGenerator:
             print(f"❌ No code.json found in {repo_name}")
 
     def process_github_org_files(self, org_name: str, add_to_index=True, codeJSONPath=None) -> None:
-        try:
-            orgs = self.get_github_org_repos(org_name)
-            total_repos = len(orgs)
-            
-            for id, repo in enumerate(orgs, 1):
+        orgs = self.get_github_org_repos(org_name)
+        total_repos = len(orgs)
+
+        for id, repo in enumerate(orgs, 1):
+            try:
                 self._enumerate_repo_orgs(
-                    org_name,repo['name'],repo['svn_url'],total_repos,codeJSONPath=codeJSONPath
+                    id,org_name,repo['name'],repo['svn_url'],total_repos,codeJSONPath=codeJSONPath,add_to_index=add_to_index
                 )
-                    
-        except Exception as e:
-            print(f"Error processing organization {org_name}: {str(e)}")
+            except Exception as e:
+                print(e)
     
     def get_gitlab_org_repos(self, org_name: str) -> list[Dict]:
         try:
@@ -252,7 +252,7 @@ class IndexGenerator:
             
             for id, repo in enumerate(orgs, 1):
                 self._enumerate_repo_orgs(
-                    org_name,repo['name'],repo['web_url'],total_repos,codeJSONPath=codeJSONPath
+                    id,org_name,repo['name'],repo['web_url'],total_repos,codeJSONPath=codeJSONPath,add_to_index=add_to_index
                 )
                     
         except Exception as e:
