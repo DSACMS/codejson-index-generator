@@ -70,7 +70,13 @@ def get_repo_owner_and_name(repo_http_url):
     # The first group contains the owner of the github repo extracted from the url
     # The second group contains the name of the github repo extracted from the url
     # 'But what is a regular expression?' ----> https://docs.python.org/3/howto/regex.html
-    regex = r"https?:\/\/github\.com\/([A-Za-z0-9 \- _]+)\/([A-Za-z0-9 \- _ \.]+)(.git)?\/?$"
+    if 'github' in repo_http_url:
+        regex = r"https?:\/\/github\.com\/([A-Za-z0-9 \- _]+)\/([A-Za-z0-9 \- _ \.]+)(.git)?\/?$"
+    elif 'gitlab' in repo_http_url:
+        regex = r"https?:\/\/gitlab\.com\/([A-Za-z0-9 \- _]+)\/([A-Za-z0-9 \- _ \.]+)(.git)?\/?$"
+    elif 'bitbucket' in repo_http_url:
+        regex = r"https?:\/\/bitbucket\.org\/([A-Za-z0-9 \- _]+)\/([A-Za-z0-9 \- _ \.]+)(.git)?\/?$"
+
     result = re.search(regex, repo_http_url)
 
     if not result:
@@ -86,7 +92,7 @@ def get_repo_owner_and_name(repo_http_url):
 
 
 class IndexGenerator:
-    def __init__(self, agency: str, version: str, token: Optional[str] = None,):
+    def __init__(self, agency: str, version: str, token: Optional[str] = None, bitbucket_user: Optional[str] = None, bitbucket_password: Optional[str] = None, gitlab_token: Optional[str] = None):
 
         # user can change agency and version depending on parameters
         self.index = {
@@ -99,6 +105,9 @@ class IndexGenerator:
         }
 
         self.token = token
+        self.gitlab_token = gitlab_token
+        self.bitbucket_user = bitbucket_user
+        self.bitbucket_password = bitbucket_password
 
     def get_code_json_github(self,repo : str) -> Optional[Dict]:
         try:
@@ -116,14 +125,45 @@ class IndexGenerator:
             print(f"JSON Error: {str(e)}")
             return None
     
-    def get_code_json_other(self,repo: str) -> Optional[Dict]:
-        return None
+    def get_code_json_gitlab(self,repo: str) -> Optional[Dict]:
+        try:
+            owner,name = get_repo_owner_and_name(repo)
+            code_json_endpoint = f"https://gitlab.com/api/v4/projects/{owner}%2F{name}/repository/files/code.json?ref=HEAD"
+            content_dict = hit_endpoint(code_json_endpoint,self.gitlab_token)
+        except Exception as e:
+            print("Problem querying the Gitlab API")
+            return None
+
+        try:
+            decoded_content = base64.b64decode(content_dict['content'])
+            return json.loads(decoded_content)
+        except (json.JSONDecodeError, ValueError) as e:
+            print(f"JSON Error {e}")
+            return None
+
+    def get_code_json_bitbucket(self,repo: str) -> Optional[Dict]:
+        try:
+            owner, name = get_repo_owner_and_name(repo)
+            code_json_endpoint = f"https://bitbucket.org/{owner}/{name}/raw/HEAD/code.json"
+            session = requests.Session()
+            session.auth = (self.bitbucket_user,self.bitbucket_password)
+
+            auth = session.post('http://bitbucket.org')
+            response_dict = session.get(code_json_endpoint)
+        except Exception as e:
+            print(f"Exception when querying bitbucket.org: {e}")
+
+        return json.loads(response_dict.text)
 
     def get_code_json(self, repo: str) -> Optional[Dict]:
         if 'github' in repo:
             return self.get_code_json_github(repo)
+        elif 'gitlab' in repo:
+            return self.get_code_json_gitlab(repo)
+        elif 'bitbucket' in repo:
+            return self.get_code_json_bitbucket(repo)
         else:
-            return self.get_code_json_other(repo)
+            return None
     
     def save_code_json(self, repo: str, output_path: str) -> Optional[str]:
         
@@ -147,7 +187,7 @@ class IndexGenerator:
     
         index['releases'].append(baseline)
 
-    def get_org_repos(self, org_name: str) -> list[Dict]:
+    def get_github_org_repos(self, org_name: str) -> list[Dict]:
         try:
             org_endpoint = f"https://api.github.com/orgs/{org_name}/repos"
             print(f"\nProcessing organization: {org_name}")
@@ -162,34 +202,64 @@ class IndexGenerator:
         except Exception as e:
             raise e
 
-    def save_organization_files(self, org_name: str, codeJSONPath) -> None:
-        raise NotImplementedError
+    def _enumerate_repo_orgs(self,org_name,repo_name, url, total_repos, codeJSONPath=None):
+        print(f"\nChecking {repo_name} [{id}/{total_repos}]")
+        
+        if not codeJSONPath:
+            code_json = self.get_code_json(url)
+        else:
+            repoPath = os.path.join(codeJSONPath, (repo_name + '.json'))
+            code_json = self.save_code_json(url,repoPath)
 
-    def process_organization(self, org_name: str, add_to_index=True, codeJSONPath=None) -> None:
+        if code_json and add_to_index:
+            print(f"✅ Found code.json in {repo_name}")
+            self.update_index(self.index, code_json, org_name, repo_name)
+        elif not code_json:
+            print(f"❌ No code.json found in {repo_name}")
+
+    def process_github_org_files(self, org_name: str, add_to_index=True, codeJSONPath=None) -> None:
         try:
-            org = self.github.get_organization(org_name)
-            total_repos = self.get_org_repos(org_name)
+            orgs = self.get_github_org_repos(org_name)
+            total_repos = len(orgs)
             
-            for id, repo in enumerate(org.get_repos(type='public'), 1):
-                print(f"\nChecking {repo.name} [{id}/{total_repos}]")
-                
-                if not codeJSONPath:
-                    code_json = self.get_code_json(repo)
-                else:
-                    repoPath = os.path.join(codeJSONPath, (repo.name + '.json'))
-                    code_json = self.save_code_json(repo,repoPath)
-
-                if code_json and add_to_index:
-                    print(f"✅ Found code.json in {repo.name}")
-                    self.update_index(self.index, code_json, org_name, repo.name)
-                elif not code_json:
-                    print(f"❌ No code.json found in {repo.name}")
+            for id, repo in enumerate(orgs, 1):
+                self._enumerate_repo_orgs(
+                    org_name,repo['name'],repo['svn_url'],total_repos,codeJSONPath=codeJSONPath
+                )
                     
-        except GithubException as e:
+        except Exception as e:
+            print(f"Error processing organization {org_name}: {str(e)}")
+    
+    def get_gitlab_org_repos(self, org_name: str) -> list[Dict]:
+        try:
+            url_encoded_org_name = org_name.replace("/","%2F")
+            org_endpoint = f"https://gitlab.com/api/v4/groups/{url_encoded_org_name}/projects"
+            
+            repo_list = hit_endpoint(org_endpoint,self.gitlab_token)
+
+            total_repos = len(repo_list)
+            print(f"Found {total_repos} public repositories")
+            
+            return total_repos
+        except Exception as e:
+            print(f"Ran into Exception when querying Gitlab Repos in group {org_name}: {e}")
+            return None
+
+    def process_gitlab_org_files(self, org_name: str, add_to_index=True, codeJSONPath=None) -> None:
+        try:
+            orgs = self.get_gitlab_org_repos(org_name)
+            total_repos = len(orgs)
+            
+            for id, repo in enumerate(orgs, 1):
+                self._enumerate_repo_orgs(
+                    org_name,repo['name'],repo['web_url'],total_repos,codeJSONPath=codeJSONPath
+                )
+                    
+        except Exception as e:
             print(f"Error processing organization {org_name}: {str(e)}")
 
     def save_index(self, output_path: str) -> None:
-        # sorts index by organizaiton then by name
+        # sorts index by organization then by name
         self.index['releases'].sort(key=lambda x: (x.get('organization', ''), x.get('name', '')))
 
         with open(output_path, 'w') as f:

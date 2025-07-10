@@ -10,6 +10,7 @@ repository = "https://github.com/DSACMS/codejson-index-generator"
 [tool.poetry.dependencies]
 python = "^3.13"
 requests = "^2.32.4"
+llnl-scraper = "^0.15.0"
 
 
 [build-system]
