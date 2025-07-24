@@ -1,11 +1,9 @@
 import json
 from json.decoder import JSONDecodeError
 import base64
-import argparse
 import os
 import requests
 import re
-import subprocess
 
 from time import sleep, mktime, gmtime, time, localtime
 from typing import Dict, Optional
@@ -43,7 +41,7 @@ def hit_endpoint(url,token,method='GET'):
                 response_json = {}
                 attempts += 1
 
-                if attempts >= REQUEST_RETRIES:
+                if attempts >= RETRIES:
                     raise ConnectionError(
                         f"Rate limit was reached and couldn't be rectified after {attempts} tries"
                     )
