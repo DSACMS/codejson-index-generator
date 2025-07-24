@@ -40,13 +40,13 @@ def main():
     try:
         indexGen = IndexGenerator(
             agency = args.agency,
-            verison = args.version, 
+            version = args.version, 
             token = github_key
         )
 
         for org in args.orgs.split(","):
             org = org.strip()
-            indexGen.process_organization(org)
+            indexGen.process_github_org_files(org)
 
         indexGen.save_index(args.output)
         print(f"\nIndexing complete. Results saved to {args.output}")
