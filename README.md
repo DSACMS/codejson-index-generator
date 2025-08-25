@@ -2,6 +2,8 @@
 
 Script to create an indexed code.json for agencies.
 
+https://dsacms.github.io/index-generator-website/
+
 ## About the Project
 
 The GitHub Code.json Index Generator is a Python-based tool that helps federal agencies compile and maintain their code.json files for code.gov compliance. It automatically scans specified GitHub organizations, finds repositories containing code.json files, and combines them into a single indexed file.
