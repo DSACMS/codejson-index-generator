@@ -1,26 +1,30 @@
 {
   "name": "codejson-index-generator",
+  "version": "",
   "description": "Script to create an indexed code.json",
   "longDescription": "The GitHub Code.json Index Generator is a Python-based tool that helps federal agencies compile and maintain their code.json files for code.gov compliance. It automatically scans specified GitHub organizations, finds repositories containing code.json files, and combines them into a single indexed file.",
-  "status": "production",
+  "status": "Production",
   "permissions": {
     "licenses": [
       {
-        "URL": "https://github.com/DSACMS/codejson-index-generator/blob/main/LICENSE",
-        "name": "CC0-1.0"
+        "name": "CC0-1.0",
+        "URL": "https://github.com/DSACMS/codejson-index-generator/blob/main/LICENSE"
       }
     ],
-    "usageType": "openSource"
+    "usageType": ["openSource"]
   },
   "organization": "Centers for Medicare & Medicaid Services",
   "repositoryURL": "https://github.com/DSACMS/codejson-index-generator",
-  "projectURL": "",
   "repositoryHost": "github.com/DSACMS",
   "repositoryVisibility": "public",
+  "homepageURL": "https://dsacms.github.io/index-generator-website/",
+  "downloadURL": "",
+  "disclaimerURL": "",
+  "disclaimerText": "",
   "vcs": "git",
-  "laborHours": 2822,
+  "laborHours": 2935,
   "reuseFrequency": {
-    "forks": 2,
+    "forks": 3,
     "clones": 0
   },
   "platforms": [
@@ -35,39 +39,37 @@
     "Python"
   ],
   "maintenance": "internal",
-  "contractNumber": "",
+  "contractNumber": [],
+  "SBOM": "https://github.com/DSACMS/codejson-index-generator/network/dependencies",
+  "relatedCode": [],
+  "reusedCode": [],
+  "partners": [],
   "date": {
     "created": "2025-01-07T21:26:42Z",
-    "lastModified": "2025-05-21T16:01:19Z",
-    "metaDataLastUpdated": "2025-06-10T17:28:18.288Z"
+    "lastModified": "2025-08-25T18:31:44Z",
+    "metadataLastUpdated": "2025-10-30T21:21:11.986Z"
   },
   "tags": [
-    "codejson",
-    "index",
-    "generator",
-    "tools",
-    "featured"
+    "cmsoss-tier3"
   ],
   "contact": {
     "email": "opensource@cms.hhs.gov",
     "name": "CMS Open Source Program Office"
   },
-  "feedbackMechanisms": [
-    "https://github.com/DSACMS/codejson-index-generator/issues"
-  ],
+  "feedbackMechanism": "https://github.com/DSACMS/codejson-index-generator/issues",
+  "AIUseCaseID": "0",
   "localisation": false,
-  "repositoryType": "Tools",
+  "repositoryType": "tools",
   "userInput": true,
-  "fismaLevel": "Low",
+  "fismaLevel": "low",
   "group": "CMS/OA/DSAC",
   "projects": [],
   "systems": [],
-  "upstream": "https://github.com/DSACMS/codejson-index-generator/network/dependencies",
   "subsetInHealthcare": [
-    "Operational"
+    "operational"
   ],
   "userType": [
-    "Government"
+    "government"
   ],
   "maturityModelTier": 3
 }
