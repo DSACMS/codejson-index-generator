@@ -52,7 +52,12 @@
     "metadataLastUpdated": "2025-12-01T02:02:48.639Z"
   },
   "tags": [
-    "cmsoss-tier3"
+    "cmsoss-tier3",
+    "inventory",
+    "agency",
+    "codejson",
+    "metadata",
+    "featured"
   ],
   "contact": {
     "email": "opensource@cms.hhs.gov",
@@ -65,7 +70,7 @@
   "userInput": true,
   "fismaLevel": "low",
   "group": "CMS/OA/DSAC",
-  "projects": [],
+  "projects": ["share-it-act"],
   "systems": [],
   "subsetInHealthcare": [
     "operational"
